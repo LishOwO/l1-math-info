@@ -1,3 +1,5 @@
+library("numDeriv")
+
 Somme2Max <- function(x,y,z){
     if (y >= x && z >= x) return(y + z)
     if (x >= y && z >= y) return(x + z)
@@ -75,11 +77,29 @@ Impot <- function(s){
   return(floor(total * 100) / 100)
 }
 
-CalculerNoteFinale <- function(ct1, ct2, cp, ca1, ca2){
-  NC <- (max(cp, ct1) + (ca1 + ca2)/2)/2
-  N1 <- max(ct1, 0.4*NC + 0.6*ct1)
-  N2 <- max(N1, ct2, 0.2*NC + 0.8*ct2)
-  return(N2)
+ArrondirNote <- function(x) {
+  ceiling(4 * x) / 4
+}
+
+CalculerControleContinu <- function(ct1, cp, ca1, ca2) {
+  cp <- max(0, ct1, cp, na.rm = TRUE)
+  return(ArrondirNote(sum(cp, ca1, ca2, na.rm = TRUE) / 3))
+}
+
+CalculerNoteFinale <- function(ct1, ct2, cp, ca1, ca2) {
+  cc <- CalculerControleContinu(ct1, cp, ca1, ca2)
+
+  n <- ArrondirNote(
+    max(ct1, 0.4 * cc + 0.6 * ct1)
+  )
+
+  if (!is.na(ct2)) {
+    n <- ArrondirNote(
+      max(ct2, 0.2 * cc + 0.8 * ct2, n, na.rm = TRUE)
+    )
+  }
+
+  return(n)
 }
 
 CalculerHypotenuse <- function(){
@@ -90,3 +110,12 @@ CalculerHypotenuse <- function(){
   return((a**2 + b**2)**(1/2))
 }
 
+f <- function(x) {
+  sin(x) / sqrt(x^4 + 1)
+}
+
+f2 <- function(x) {
+  hessian(f, x)
+}
+
+f2(sqrt(2))
